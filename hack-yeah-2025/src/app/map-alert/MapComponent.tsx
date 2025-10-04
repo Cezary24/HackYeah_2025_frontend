@@ -183,6 +183,73 @@ function BunkersLayer() {
   return null;
 }
 
+// Komponent do wyświetlania poligonów ostrzeżeń z GeoJSON
+function AlertPolygonsLayer() {
+  const map = useMap();
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let geoJsonLayer: L.GeoJSON | null = null;
+
+    fetch("/GeoLocations/message.geojson")
+      .then((response) => response.json())
+      .then((data: FeatureCollection) => {
+        console.log("Załadowano poligony:", data.features?.length);
+
+        geoJsonLayer = L.geoJSON(data, {
+          style: () => ({
+            fillColor: "#ff0000",
+            weight: 2,
+            opacity: 0.7,
+            color: "#cc0000",
+            fillOpacity: 0.3,
+          }),
+          onEachFeature: (_feature, layer) => {
+            layer.bindPopup(
+              '<div style="padding: 5px;"><strong style="color: #cc0000;">⚠️ Strefa ostrzeżenia</strong></div>'
+            );
+          },
+        });
+
+        geoJsonLayer.addTo(map);
+        setLoading(false);
+        console.log("Poligony dodane do mapy");
+      })
+      .catch((error) => {
+        console.error("Błąd ładowania poligonów:", error);
+        setLoading(false);
+      });
+
+    return () => {
+      if (geoJsonLayer) {
+        geoJsonLayer.remove();
+      }
+    };
+  }, [map]);
+
+  if (loading) {
+    return (
+      <div
+        style={{
+          position: "absolute",
+          top: "60px",
+          left: "10px",
+          background: "white",
+          padding: "8px 12px",
+          borderRadius: "4px",
+          zIndex: 1000,
+          boxShadow: "0 2px 5px rgba(0,0,0,0.3)",
+          fontSize: "14px",
+        }}
+      >
+        Ładowanie stref ostrzeżeń...
+      </div>
+    );
+  }
+
+  return null;
+}
+
 // Komponent do pokazywania lokalizacji użytkownika
 function LocationMarker() {
   const map = useMap();
@@ -228,7 +295,13 @@ function LocationMarker() {
           map.setView([latitude, longitude], 13);
         },
         (err) => {
-          console.error("Błąd pobierania lokalizacji:", err);
+          console.error("Błąd pobierania lokalizacji:", {
+            code: err.code,
+            message: err.message,
+            PERMISSION_DENIED: err.PERMISSION_DENIED,
+            POSITION_UNAVAILABLE: err.POSITION_UNAVAILABLE,
+            TIMEOUT: err.TIMEOUT,
+          });
 
           // Jeśli to był timeout z wysoką dokładnością, spróbuj bez niej
           if (err.code === err.TIMEOUT && useHighAccuracy) {
@@ -238,22 +311,29 @@ function LocationMarker() {
           }
 
           setLoading(false);
-          switch (err.code) {
-            case err.PERMISSION_DENIED:
-              setError(
-                "Odmowa dostępu do lokalizacji. Sprawdź uprawnienia w ustawieniach przeglądarki."
-              );
-              break;
-            case err.POSITION_UNAVAILABLE:
-              setError(
-                "Lokalizacja niedostępna. Upewnij się, że GPS jest włączony."
-              );
-              break;
-            case err.TIMEOUT:
-              setError("Upłynął limit czasu. Kliknij aby spróbować ponownie.");
-              break;
-            default:
-              setError(`Błąd pobierania lokalizacji (kod: ${err.code})`);
+
+          // Bezpieczna obsługa błędów
+          const errorCode = err.code || 0;
+
+          if (errorCode === 1 || errorCode === err.PERMISSION_DENIED) {
+            setError(
+              "Odmowa dostępu do lokalizacji. Sprawdź uprawnienia w ustawieniach przeglądarki."
+            );
+          } else if (
+            errorCode === 2 ||
+            errorCode === err.POSITION_UNAVAILABLE
+          ) {
+            setError(
+              "Lokalizacja niedostępna. Upewnij się, że GPS jest włączony."
+            );
+          } else if (errorCode === 3 || errorCode === err.TIMEOUT) {
+            setError("Upłynął limit czasu. Kliknij aby spróbować ponownie.");
+          } else {
+            setError(
+              `Nie udało się pobrać lokalizacji. ${
+                err.message || "Spróbuj ponownie."
+              }`
+            );
           }
         },
         {
@@ -365,6 +445,7 @@ export default function MapComponent() {
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
+      <AlertPolygonsLayer />
       <LocationMarker />
       <BunkersLayer />
     </MapContainer>
