@@ -84,7 +84,7 @@ export default function Navbar() {
     },
     {
       name: "Profil",
-      href: "/news",
+      href: "/profile",
       icon: UserIcon,
     },
   ];

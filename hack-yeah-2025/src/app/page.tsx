@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
 
 export default function Page() {
   const items: Array<{
@@ -29,55 +28,42 @@ export default function Page() {
       variant: "danger",
     },
   ];
-  const [isDanger] = useState(true);
 
   return (
-    <main className="p-3 sm:p-4">
-      <div className="mx-auto w-full max-w-sm rounded-md bg-white p-4 ">
+    <main className="h-full w-full flex flex-col p-4 sm:p-6 bg-gray-50">
+      <div className="mx-auto w-full max-w-4xl flex-1 flex flex-col">
         <h1 className="sr-only">Home</h1>
 
-        {isDanger && (
-          <div className="rounded-md bg-red-100 px-4 py-3 text-red-800">
-            <div className="flex items-center justify-between">
-              <span className="font-semibold">Wysokie zagrożenie</span>
-              <Image
-                src="/assets/alert.png"
-                alt="Alert"
-                width={24}
-                height={24}
-              />
-            </div>
-          </div>
-        )}
-
-        <div className="mt-6 flex flex-col gap-4">
+        <div className="flex-1 flex flex-col gap-4 mb-6">
           {items.map((item) => (
             <Link
               key={item.href}
               href={item.href}
               className={
                 item.variant === "danger"
-                  ? "flex items-center justify-between rounded-xl bg-red-200 px-4 py-5 text-red-900"
-                  : "flex items-center justify-between rounded-xl bg-white px-4 py-5 shadow"
+                  ? "flex items-center justify-between rounded-xl bg-red-200 px-6 py-6 text-red-900 shadow-md hover:shadow-lg transition-shadow"
+                  : "flex items-center justify-between rounded-xl bg-white px-6 py-6 shadow-md hover:shadow-lg transition-shadow"
               }
             >
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-4">
                 <Image
                   src={item.icon}
                   alt={item.title}
-                  width={32}
-                  height={32}
+                  width={40}
+                  height={40}
                 />
-                <span className="font-medium">{item.title}</span>
+                <span className="font-medium text-lg">{item.title}</span>
               </div>
-              <span className="text-xl">›</span>
+              <span className="text-2xl">›</span>
             </Link>
           ))}
         </div>
 
-        <section className="mt-8">
-          <h2 className="text-lg font-semibold">Oficjalne komunikaty</h2>
-          <article className="mt-3 h-40 rounded-xl bg-neutral-200 p-4" />
+        <section className="bg-white rounded-xl p-6 shadow-md">
+          <h2 className="text-xl font-semibold mb-4">Oficjalne komunikaty</h2>
+          <article className="min-h-[200px] rounded-lg bg-neutral-100 p-4 flex items-center justify-center text-gray-500">
+            <span>Brak nowych komunikatów</span>
+          </article>
         </section>
       </div>
     </main>
