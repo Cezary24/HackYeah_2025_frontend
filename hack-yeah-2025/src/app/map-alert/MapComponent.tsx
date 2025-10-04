@@ -3,10 +3,12 @@
 import "leaflet/dist/leaflet.css";
 import { MapContainer, TileLayer, useMap, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
+import type { FeatureCollection, Feature, Point, Polygon } from "geojson";
 
 // Napraw domyślne ikony Leaflet w Next.js
 if (typeof window !== "undefined") {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   delete (L.Icon.Default.prototype as any)._getIconUrl;
   L.Icon.Default.mergeOptions({
     iconRetinaUrl:
@@ -19,7 +21,7 @@ if (typeof window !== "undefined") {
 // Komponent do ładowania i wyświetlania danych GeoJSON
 function BunkersLayer() {
   const map = useMap();
-  const [allBunkers, setAllBunkers] = useState<any>(null);
+  const [allBunkers, setAllBunkers] = useState<FeatureCollection | null>(null);
   const [loading, setLoading] = useState(true);
 
   // Stwórz niestandardową ikonę dla bunkerów
@@ -31,71 +33,79 @@ function BunkersLayer() {
   });
 
   // Funkcja do filtrowania bunkerów na podstawie granic mapy
-  const filterBunkersByBounds = (data: any, bounds: L.LatLngBounds) => {
-    if (!data || !data.features) return null;
+  const filterBunkersByBounds = useCallback(
+    (data: FeatureCollection, bounds: L.LatLngBounds) => {
+      if (!data || !data.features) return null;
 
-    const filtered = {
-      ...data,
-      features: data.features.filter((feature: any) => {
-        if (feature.geometry.type === "Point") {
-          const [lng, lat] = feature.geometry.coordinates;
-          return bounds.contains([lat, lng]);
-        } else if (feature.geometry.type === "Polygon") {
-          // Sprawdź czy którykolwiek punkt poligonu jest w granicach
-          const coords = feature.geometry.coordinates[0];
-          return coords.some((coord: number[]) =>
-            bounds.contains([coord[1], coord[0]])
-          );
-        }
-        return false;
-      }),
-    };
+      const filtered: FeatureCollection = {
+        ...data,
+        features: data.features.filter((feature) => {
+          if (feature.geometry.type === "Point") {
+            const point = feature.geometry as Point;
+            const [lng, lat] = point.coordinates;
+            return bounds.contains([lat, lng]);
+          } else if (feature.geometry.type === "Polygon") {
+            // Sprawdź czy którykolwiek punkt poligonu jest w granicach
+            const polygon = feature.geometry as Polygon;
+            const coords = polygon.coordinates[0];
+            return coords.some((coord) =>
+              bounds.contains([coord[1], coord[0]])
+            );
+          }
+          return false;
+        }),
+      };
 
-    console.log(
-      `Wyświetlam ${filtered.features.length} bunkerów z ${data.features.length}`
-    );
-    return filtered;
-  };
+      console.log(
+        `Wyświetlam ${filtered.features.length} bunkerów z ${data.features.length}`
+      );
+      return filtered;
+    },
+    []
+  );
 
   // Funkcja do tworzenia warstwy GeoJSON
-  const createGeoJSONLayer = (data: any) => {
-    return L.geoJSON(data, {
-      onEachFeature: (feature, layer) => {
-        if (feature.properties) {
-          const props = feature.properties;
-          let popupContent = `<div style="max-width: 200px;">`;
+  const createGeoJSONLayer = useCallback(
+    (data: FeatureCollection) => {
+      return L.geoJSON(data, {
+        onEachFeature: (feature, layer) => {
+          if (feature.properties) {
+            const props = feature.properties;
+            let popupContent = `<div style="max-width: 200px;">`;
 
-          if (props.name) {
-            popupContent += `<strong>${props.name}</strong><br/>`;
-          }
-          if (props.military) {
-            popupContent += `Typ: ${props.military}<br/>`;
-          }
-          if (props["addr:city"]) {
-            popupContent += `Miasto: ${props["addr:city"]}<br/>`;
-          }
-          if (props.website) {
-            popupContent += `<a href="${props.website}" target="_blank">Strona WWW</a><br/>`;
-          }
+            if (props.name) {
+              popupContent += `<strong>${props.name}</strong><br/>`;
+            }
+            if (props.military) {
+              popupContent += `Typ: ${props.military}<br/>`;
+            }
+            if (props["addr:city"]) {
+              popupContent += `Miasto: ${props["addr:city"]}<br/>`;
+            }
+            if (props.website) {
+              popupContent += `<a href="${props.website}" target="_blank">Strona WWW</a><br/>`;
+            }
 
-          popupContent += `</div>`;
-          layer.bindPopup(popupContent);
-        }
-      },
-      pointToLayer: (feature, latlng) => {
-        return L.marker(latlng, { icon: bunkerIcon });
-      },
-      style: (feature) => {
-        return {
-          fillColor: "#ff7800",
-          weight: 2,
-          opacity: 1,
-          color: "#ff7800",
-          fillOpacity: 0.5,
-        };
-      },
-    });
-  };
+            popupContent += `</div>`;
+            layer.bindPopup(popupContent);
+          }
+        },
+        pointToLayer: (_feature, latlng) => {
+          return L.marker(latlng, { icon: bunkerIcon });
+        },
+        style: () => {
+          return {
+            fillColor: "#ff7800",
+            weight: 2,
+            opacity: 1,
+            color: "#ff7800",
+            fillOpacity: 0.5,
+          };
+        },
+      });
+    },
+    [bunkerIcon]
+  );
 
   useEffect(() => {
     fetch("/bunkers/bunkers_location_pl.geojson")
@@ -149,7 +159,7 @@ function BunkersLayer() {
         geoJsonLayer.remove();
       }
     };
-  }, [map, allBunkers, bunkerIcon]);
+  }, [map, allBunkers, bunkerIcon, filterBunkersByBounds, createGeoJSONLayer]);
 
   if (loading) {
     return (
@@ -178,6 +188,8 @@ function LocationMarker() {
   const map = useMap();
   const [position, setPosition] = useState<[number, number] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [retryCount, setRetryCount] = useState(0);
 
   // Ikona dla lokalizacji użytkownika
   const userIcon = L.icon({
@@ -189,46 +201,97 @@ function LocationMarker() {
     shadowSize: [41, 41],
   });
 
-  useEffect(() => {
+  const getLocation = useCallback(() => {
+    setLoading(true);
+    setError(null);
+
     // Sprawdź czy przeglądarka wspiera geolokalizację
     if (!navigator.geolocation) {
       setError("Twoja przeglądarka nie wspiera geolokalizacji");
+      setLoading(false);
       return;
     }
 
-    // Pobierz lokalizację użytkownika
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const { latitude, longitude } = pos.coords;
-        setPosition([latitude, longitude]);
-        // Wyśrodkuj mapę na lokalizacji użytkownika
-        map.setView([latitude, longitude], 13);
-      },
-      (err) => {
-        console.error("Błąd pobierania lokalizacji:", err);
-        switch (err.code) {
-          case err.PERMISSION_DENIED:
-            setError("Odmowa dostępu do lokalizacji");
-            break;
-          case err.POSITION_UNAVAILABLE:
-            setError("Lokalizacja niedostępna");
-            break;
-          case err.TIMEOUT:
-            setError("Upłynął limit czasu żądania lokalizacji");
-            break;
-          default:
-            setError("Nieznany błąd");
+    console.log("Próba pobrania lokalizacji...");
+
+    // Spróbuj najpierw z enableHighAccuracy
+    const tryGetPosition = (useHighAccuracy: boolean) => {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const { latitude, longitude, accuracy } = pos.coords;
+          console.log(
+            `Lokalizacja pobrana: ${latitude}, ${longitude}, dokładność: ${accuracy}m`
+          );
+          setPosition([latitude, longitude]);
+          setLoading(false);
+          // Wyśrodkuj mapę na lokalizacji użytkownika
+          map.setView([latitude, longitude], 13);
+        },
+        (err) => {
+          console.error("Błąd pobierania lokalizacji:", err);
+
+          // Jeśli to był timeout z wysoką dokładnością, spróbuj bez niej
+          if (err.code === err.TIMEOUT && useHighAccuracy) {
+            console.log("Timeout z wysoką dokładnością, próbuję bez niej...");
+            tryGetPosition(false);
+            return;
+          }
+
+          setLoading(false);
+          switch (err.code) {
+            case err.PERMISSION_DENIED:
+              setError(
+                "Odmowa dostępu do lokalizacji. Sprawdź uprawnienia w ustawieniach przeglądarki."
+              );
+              break;
+            case err.POSITION_UNAVAILABLE:
+              setError(
+                "Lokalizacja niedostępna. Upewnij się, że GPS jest włączony."
+              );
+              break;
+            case err.TIMEOUT:
+              setError("Upłynął limit czasu. Kliknij aby spróbować ponownie.");
+              break;
+            default:
+              setError(`Błąd pobierania lokalizacji (kod: ${err.code})`);
+          }
+        },
+        {
+          enableHighAccuracy: useHighAccuracy,
+          timeout: useHighAccuracy ? 10000 : 15000, // 10s z GPS, 15s bez
+          maximumAge: 30000, // Akceptuj lokalizację z ostatnich 30 sekund
         }
-      },
-      {
-        enableHighAccuracy: true, // Wysoka dokładność
-        timeout: 5000, // 5 sekund timeout
-        maximumAge: 0, // Nie używaj cache
-      }
-    );
+      );
+    };
+
+    tryGetPosition(true);
   }, [map]);
 
-  // Jeśli jest błąd, pokaż komunikat
+  useEffect(() => {
+    getLocation();
+  }, [getLocation]);
+
+  if (loading) {
+    return (
+      <div
+        style={{
+          position: "absolute",
+          bottom: "10px",
+          left: "10px",
+          background: "white",
+          padding: "10px",
+          borderRadius: "5px",
+          zIndex: 1000,
+          boxShadow: "0 2px 5px rgba(0,0,0,0.3)",
+          color: "#333",
+        }}
+      >
+        📍 Pobieranie lokalizacji...
+      </div>
+    );
+  }
+
+  // Jeśli jest błąd, pokaż komunikat z przyciskiem ponowienia
   if (error) {
     return (
       <div
@@ -241,10 +304,30 @@ function LocationMarker() {
           borderRadius: "5px",
           zIndex: 1000,
           boxShadow: "0 2px 5px rgba(0,0,0,0.3)",
-          color: "red",
+          maxWidth: "250px",
         }}
       >
-        {error}
+        <div style={{ color: "red", marginBottom: "8px", fontSize: "14px" }}>
+          ⚠️ {error}
+        </div>
+        <button
+          onClick={() => {
+            setRetryCount((prev) => prev + 1);
+            getLocation();
+          }}
+          style={{
+            background: "#3b82f6",
+            color: "white",
+            padding: "6px 12px",
+            borderRadius: "4px",
+            border: "none",
+            cursor: "pointer",
+            fontSize: "14px",
+            width: "100%",
+          }}
+        >
+          🔄 Spróbuj ponownie
+        </button>
       </div>
     );
   }

@@ -12,7 +12,7 @@ export default function Page() {
     variant?: "default" | "danger";
   }> = [
     {
-      title: "Krok po kroku",
+      title: "Scenariusze awaryjne",
       icon: "/assets/step_by_step.png",
       href: "/krok-po-kroku",
     },
@@ -29,11 +29,10 @@ export default function Page() {
       variant: "danger",
     },
   ];
-  const [isDanger, setDanger] = useState(true);
-  const [isSos, setSos] = useState(false);
+  const [isDanger] = useState(true);
 
   return (
-    <main className="min-h-dvh p-3 sm:p-4">
+    <main className="p-3 sm:p-4">
       <div className="mx-auto w-full max-w-sm rounded-md bg-white p-4 ">
         <h1 className="sr-only">Home</h1>
 
