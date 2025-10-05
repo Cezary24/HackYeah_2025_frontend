@@ -1,5 +1,4 @@
 // Centralny eksport wszystkich serwisów
-export { InterviewService } from "./interview.service";
 export { DatabaseService } from "./database.service";
 export { RcbService } from "./rcb.service";
 

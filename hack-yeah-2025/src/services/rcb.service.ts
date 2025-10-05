@@ -1,7 +1,4 @@
 import { supabase } from "@/lib/supabase/client";
-import type { Database } from "@/types/database";
-
-type RcbRow = Database["public"]["Tables"]["rcb"]["Row"];
 
 export interface RcbNews {
   id: number;

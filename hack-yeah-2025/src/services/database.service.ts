@@ -1,6 +1,5 @@
 import { supabase } from "@/lib/supabase/client";
 import type { PostgrestError } from "@supabase/supabase-js";
-
 /**
  * Uniwersalny serwis do operacji CRUD na bazie danych
  */
@@ -136,9 +135,8 @@ export class DatabaseService {
     try {
       let query = supabase.from(table).select(options?.select || "*");
 
-      // Dodaj filtry
       Object.entries(filters).forEach(([key, value]) => {
-        query = query.eq(key, value);
+        query = query.eq(key, value!);
       });
 
       if (options?.orderBy) {
@@ -174,7 +172,7 @@ export class DatabaseService {
 
       if (filters) {
         Object.entries(filters).forEach(([key, value]) => {
-          query = query.eq(key, value);
+          query = query.eq(key, value!);
         });
       }
 
