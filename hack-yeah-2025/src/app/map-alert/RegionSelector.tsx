@@ -154,102 +154,95 @@ export default function RegionSelector({
   };
 
   return (
-    <div className="w-full h-screen flex flex-col bg-white overflow-hidden">
+    <div className="w-full  flex flex-col bg-white">
       {/* Nagłówek */}
-      <div className="text-center py-2 px-2 flex-shrink-0">
-        <h1 className="text-lg sm:text-2xl font-bold text-gray-800 mb-1">
+      <div className="text-center pt-2 pb-2 px-2 flex-shrink-0">
+        <h1 className="text-base sm:text-xl font-bold text-gray-800">
           Wybierz lokalizację
         </h1>
-        <p className="text-xs sm:text-sm text-gray-600">
-          Kliknij na województwo, aby zobaczyć szczegóły
-        </p>
       </div>
 
-      {/* Mapa województw */}
-      <div className="flex-1 flex items-center justify-center px-2 sm:px-8 min-h-0">
-        <div className="w-full max-w-4xl h-full flex items-center justify-center">
-          <svg
-            viewBox="0 0 500 300"
-            className="w-full h-full"
-            preserveAspectRatio="xMidYMid meet"
-          >
-            {geometries.map((geometry) => {
-              const voivodeship = voivodeships.find(
-                (v) => v.name === geometry.name
-              );
-              if (!voivodeship) return null;
+      <div className="w-full px-4">
+        <svg
+          viewBox="0 -20 500 300"
+          className="w-full"
+          style={{ height: "auto", maxHeight: "50vh" }}
+          preserveAspectRatio="xMidYMid meet"
+        >
+          {geometries.map((geometry) => {
+            const voivodeship = voivodeships.find(
+              (v) => v.name === geometry.name
+            );
+            if (!voivodeship) return null;
 
-              return (
-                <g key={geometry.name}>
-                  <path
-                    d={geometry.path}
-                    fill={getAlertColor(voivodeship.alertLevel)}
-                    stroke="white"
-                    strokeWidth="1"
-                    className="cursor-pointer transition-all duration-200 hover:opacity-80"
-                    onClick={() => onVoivodeshipSelect(voivodeship)}
-                    onMouseEnter={() => setHoveredRegion(geometry.name)}
-                    onMouseLeave={() => setHoveredRegion(null)}
-                  />
+            return (
+              <g key={geometry.name}>
+                <path
+                  d={geometry.path}
+                  fill={getAlertColor(voivodeship.alertLevel)}
+                  stroke="white"
+                  strokeWidth="1"
+                  className="cursor-pointer transition-all duration-200 hover:opacity-80"
+                  onClick={() => onVoivodeshipSelect(voivodeship)}
+                  onMouseEnter={() => setHoveredRegion(geometry.name)}
+                  onMouseLeave={() => setHoveredRegion(null)}
+                />
 
-                  {/* Ikony alertów */}
-                  {voivodeship.alertLevel !== "none" && (
-                    <text
-                      x={geometry.centroid[0]}
-                      y={geometry.centroid[1]}
-                      fontSize="16"
-                      textAnchor="middle"
-                      dominantBaseline="middle"
-                      className="pointer-events-none"
-                    >
-                      {voivodeship.alertLevel === "red" ? "❗" : "⚠️"}
-                    </text>
-                  )}
-                </g>
-              );
-            })}
-          </svg>
+                {voivodeship.alertLevel !== "none" && (
+                  <text
+                    x={geometry.centroid[0]}
+                    y={geometry.centroid[1]}
+                    fontSize="16"
+                    textAnchor="middle"
+                    dominantBaseline="middle"
+                    className="pointer-events-none"
+                  >
+                    {voivodeship.alertLevel === "red" ? "❗" : "⚠️"}
+                  </text>
+                )}
+              </g>
+            );
+          })}
+        </svg>
+      </div>
+
+      {/* Legenda */}
+      <div className="flex-shrink-0 pb-safe pb-20 sm:pb-4 px-2">
+        <div className="flex items-center justify-center gap-3 sm:gap-6 flex-wrap text-xs">
+          <div className="flex items-center gap-1">
+            <div
+              className="w-2.5 h-2.5 rounded flex-shrink-0"
+              style={{ backgroundColor: "#ef4444" }}
+            ></div>
+            <span className="text-gray-700">Czerwony</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <div
+              className="w-2.5 h-2.5 rounded flex-shrink-0"
+              style={{ backgroundColor: "#f59e0b" }}
+            ></div>
+            <span className="text-gray-700">Żółty</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <div
+              className="w-2.5 h-2.5 rounded flex-shrink-0"
+              style={{ backgroundColor: "#9ca3af" }}
+            ></div>
+            <span className="text-gray-700">Brak</span>
+          </div>
         </div>
-      </div>
 
-      {/* Legenda i informacja o najechaniu */}
-      <div className="flex-shrink-0 pb-safe pb-3 px-3">
         {/* Informacja o najechaniu */}
-        {hoveredRegion ? (
-          <div className="mb-2 p-2 bg-blue-50 rounded-lg border border-blue-200">
-            <p className="text-xs sm:text-sm text-blue-800 font-medium text-center">
+        {hoveredRegion && (
+          <div className="mt-1.5 p-1.5 bg-blue-50 rounded border border-blue-200">
+            <p className="text-xs text-blue-800 font-medium text-center">
               {hoveredRegion.charAt(0).toUpperCase() + hoveredRegion.slice(1)} -{" "}
               {getAlertText(
                 voivodeships.find((v) => v.name === hoveredRegion)!.alertLevel
               )}
             </p>
           </div>
-        ) : null}
-
-        {/* Legenda */}
-        <div className="flex items-center justify-center gap-3 sm:gap-6 flex-wrap">
-          <div className="flex items-center gap-1.5">
-            <div
-              className="w-3 h-3 sm:w-4 sm:h-4 rounded flex-shrink-0"
-              style={{ backgroundColor: "#ef4444" }}
-            ></div>
-            <span className="text-xs text-gray-700">Alert czerwony</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <div
-              className="w-3 h-3 sm:w-4 sm:h-4 rounded flex-shrink-0"
-              style={{ backgroundColor: "#f59e0b" }}
-            ></div>
-            <span className="text-xs text-gray-700">Alert żółty</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <div
-              className="w-3 h-3 sm:w-4 sm:h-4 rounded flex-shrink-0"
-              style={{ backgroundColor: "#9ca3af" }}
-            ></div>
-            <span className="text-xs text-gray-700">Brak zagrożeń</span>
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );
