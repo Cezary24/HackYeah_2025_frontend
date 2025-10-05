@@ -32,15 +32,15 @@ export default function OnBoardingPage() {
     if (currentSlide < slides.length - 1) {
       setCurrentSlide(currentSlide + 1);
     } else {
-      // Ukończono onboarding - zapisz w localStorage i przekieruj
+      // Ukończono onboarding - zapisz w localStorage i przekieruj do wywiadu
       localStorage.setItem("onboardingCompleted", "true");
-      router.push("/");
+      router.push("/interview");
     }
   };
 
   const handleSkip = () => {
     localStorage.setItem("onboardingCompleted", "true");
-    router.push("/");
+    router.push("/interview");
   };
 
   const slide = slides[currentSlide];

@@ -34,8 +34,12 @@ export default function Page() {
 
   useEffect(() => {
     const onboardingCompleted = localStorage.getItem("onboardingCompleted");
+    const interviewCompleted = localStorage.getItem("interviewCompleted");
+
     if (!onboardingCompleted) {
       router.push("/onBoarding");
+    } else if (!interviewCompleted) {
+      router.push("/interview");
     }
   }, [router]);
 
