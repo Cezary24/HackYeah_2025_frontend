@@ -2,35 +2,15 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-
-const officialNews = [
-  {
-    id: 1,
-    title: "Powódź woj. kujawskie",
-    date: "23.03.2025",
-    image: "/assets/komunikaty/flood_kujawskie.png",
-  },
-  {
-    id: 2,
-    title: "Pożar w Siemianowicach Śląskich",
-    date: "13.01.2025",
-    image: "/assets/komunikaty/fire_siemianowice.png",
-  },
-];
-
-const regionalNews = [
-  {
-    id: 1,
-    title: "Pożar w Elblągu",
-    date: "17.05.2025",
-    image: "/assets/komunikaty/fire_siemianowice.png",
-  },
-];
+import { RcbService } from "@/services";
+import type { RcbNews } from "@/services/rcb.service";
 
 export default function Page() {
   const router = useRouter();
+  const [allNews, setAllNews] = useState<RcbNews[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const onboardingCompleted = localStorage.getItem("onboardingCompleted");
@@ -42,6 +22,25 @@ export default function Page() {
       router.push("/interview");
     }
   }, [router]);
+
+  // Pobierz dane z Supabase
+  useEffect(() => {
+    async function fetchNews() {
+      try {
+        const result = await RcbService.getAllNews();
+
+        if (result.data) {
+          setAllNews(result.data);
+        }
+      } catch (error) {
+        console.error("Błąd pobierania komunikatów:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchNews();
+  }, []);
 
   const items: Array<{
     title: string;
@@ -131,56 +130,43 @@ export default function Page() {
           })}
         </div>
 
-        {/* Oficjalne komunikaty */}
-        <section className="mb-6">
-          <h2 className="text-xl font-bold mb-4 px-2">Oficjalne komunikaty</h2>
-          <div className="space-y-4">
-            {officialNews.map((news) => (
-              <article
-                key={news.id}
-                className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow"
-              >
-                <div className="relative w-full h-48">
-                  <Image
-                    src={news.image}
-                    alt={news.title}
-                    fill
-                    className="object-cover"
-                  />
-                </div>
-                <div className="p-4 flex justify-between items-center">
-                  <h3 className="font-medium text-gray-900">{news.title}</h3>
-                  <span className="text-sm text-gray-500">{news.date}</span>
-                </div>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        {/* Z Twojego regionu */}
+        {/* Komunikaty RCB */}
         <section className="mb-20">
-          <h2 className="text-xl font-bold mb-4 px-2">Z Twojego regionu</h2>
-          <div className="space-y-4">
-            {regionalNews.map((news) => (
-              <article
-                key={news.id}
-                className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow"
-              >
-                <div className="relative w-full h-48">
-                  <Image
-                    src={news.image}
-                    alt={news.title}
-                    fill
-                    className="object-cover"
-                  />
-                </div>
-                <div className="p-4 flex justify-between items-center">
-                  <h3 className="font-medium text-gray-900">{news.title}</h3>
-                  <span className="text-sm text-gray-500">{news.date}</span>
-                </div>
-              </article>
-            ))}
-          </div>
+          <h2 className="text-xl font-bold mb-4 px-2">Komunikaty RCB</h2>
+          {loading ? (
+            <div className="flex justify-center items-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            </div>
+          ) : allNews.length > 0 ? (
+            <div className="space-y-4">
+              {allNews.map((news) => (
+                <a
+                  key={news.id}
+                  href={news.article_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow"
+                >
+                  <div className="relative w-full h-48">
+                    <Image
+                      src={news.image_url}
+                      alt={news.title}
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                  <div className="p-4 flex justify-between items-center">
+                    <h3 className="font-medium text-gray-900">{news.title}</h3>
+                    <span className="text-sm text-gray-500">{news.event}</span>
+                  </div>
+                </a>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              Brak komunikatów
+            </div>
+          )}
         </section>
       </div>
     </main>

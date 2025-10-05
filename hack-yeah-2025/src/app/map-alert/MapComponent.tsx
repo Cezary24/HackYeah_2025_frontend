@@ -38,8 +38,6 @@ function AlertPolygonsLayer() {
     fetch("/GeoLocations/message.geojson")
       .then((response) => response.json())
       .then((data: FeatureCollection) => {
-        console.log("Załadowano poligony:", data.features?.length);
-
         // @ts-expect-error - Leaflet type definitions issue
         geoJsonLayer = L.geoJSON(data, {
           style: () => ({
@@ -59,7 +57,6 @@ function AlertPolygonsLayer() {
 
         geoJsonLayer.addTo(map);
         setLoading(false);
-        console.log("Poligony dodane do mapy");
       })
       .catch((error) => {
         console.error("Błąd ładowania poligonów:", error);
@@ -172,9 +169,6 @@ function EmergencyServicesLayer() {
         }),
       };
 
-      console.log(
-        `Wyświetlam ${filtered.features.length} obiektów z ${data.features.length}`
-      );
       return filtered;
     },
     []
@@ -250,7 +244,6 @@ function EmergencyServicesLayer() {
       .then((data) => {
         setAllServices(data);
         setLoading(false);
-        console.log(`Załadowano ${data.features.length} obiektów ratunkowych`);
       })
       .catch((error) => {
         console.error("Błąd ładowania danych GeoJSON:", error);
@@ -358,16 +351,12 @@ function LocationMarker({
       return;
     }
 
-    console.log("Próba pobrania lokalizacji...");
-
     // Spróbuj najpierw z enableHighAccuracy
     const tryGetPosition = (useHighAccuracy: boolean) => {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
           const { latitude, longitude, accuracy } = pos.coords;
-          console.log(
-            `Lokalizacja pobrana: ${latitude}, ${longitude}, dokładność: ${accuracy}m`
-          );
+
           setPosition([latitude, longitude]);
           setLoading(false);
           // Centruj mapę tylko jeśli:
@@ -389,7 +378,6 @@ function LocationMarker({
 
           // Jeśli to był timeout z wysoką dokładnością, spróbuj bez niej
           if (err.code === err.TIMEOUT && useHighAccuracy) {
-            console.log("Timeout z wysoką dokładnością, próbuję bez niej...");
             tryGetPosition(false);
             return;
           }
@@ -594,7 +582,6 @@ function CompassControl() {
 
     // Sprawdź czy Device Orientation API jest dostępne
     if (!window.DeviceOrientationEvent) {
-      console.log("Device Orientation API nie jest dostępne na tym urządzeniu");
       setCompassError(true);
       return;
     }
@@ -615,15 +602,12 @@ function CompassControl() {
           position: "topright",
           textErr: "Kompas niedostępny",
           callErr: () => {
-            console.log("Błąd kompasu: orientacja niedostępna");
             setCompassError(true);
             // Usuń kompas po błędzie
             if (compass) {
               try {
                 map.removeControl(compass);
-              } catch (e) {
-                console.log("Nie można usunąć kompasu:", e);
-              }
+              } catch (e) {}
             }
           },
         });
@@ -638,7 +622,6 @@ function CompassControl() {
             );
             if (compassElement) {
               (compassElement as HTMLElement).style.pointerEvents = "none";
-              console.log("Wyłączono możliwość klikania w kompas");
             }
           }, 100);
 
@@ -658,14 +641,11 @@ function CompassControl() {
                 compassElement &&
                 !compassElement.classList.contains("leaflet-compass-active")
               ) {
-                console.log("Kompas został dezaktywowany, reaktywuję...");
                 if (compass.activate) {
                   compass.activate();
                 }
               }
-            } catch (e) {
-              console.log("Błąd sprawdzania stanu kompasu:", e);
-            }
+            } catch (e) {}
           }, 1000); // Sprawdzaj co sekundę
 
           // Cleanup dla intervalu
@@ -689,9 +669,7 @@ function CompassControl() {
       if (compass) {
         try {
           map.removeControl(compass);
-        } catch (e) {
-          console.log("Kompas już usunięty");
-        }
+        } catch (e) {}
       }
     };
   }, [map]);

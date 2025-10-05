@@ -50,28 +50,74 @@ export default function ScenarioDetailPage({ params }: PageProps) {
               </div>
 
               <div className="flex-1 pt-0">
-                <h2 className="text-lg md:text-xl font-semibold text-gray-900 mb-1">
-                  {step.title}
-                </h2>
-                <p className="text-sm text-gray-600 mb-4">{step.description}</p>
+                {step.detailedInfo ? (
+                  <Link
+                    href={`/krok-po-kroku/${params.slug}/krok/${step.number}`}
+                    className="block group"
+                  >
+                    <h2 className="text-lg md:text-xl font-semibold text-gray-900 mb-1 group-hover:text-blue-600 transition-colors">
+                      {step.title}
+                    </h2>
+                    <p className="text-sm text-gray-600 mb-4">
+                      {step.description}
+                    </p>
 
-                <div className="bg-gray-50 rounded-lg p-6 mb-4 flex items-center justify-center">
-                  <div className="relative w-32 h-32">
-                    <Image
-                      src={step.image}
-                      alt={step.title}
-                      fill
-                      className="object-contain"
-                    />
-                  </div>
-                </div>
+                    <div className="bg-gray-50 rounded-lg p-6 mb-4 flex items-center justify-center group-hover:bg-blue-50 transition-colors">
+                      <div className="relative w-32 h-32">
+                        <Image
+                          src={step.image}
+                          alt={step.title}
+                          fill
+                          className="object-contain"
+                        />
+                      </div>
+                    </div>
 
-                <Link
-                  href={step.linkHref}
-                  className="text-blue-600 text-sm hover:text-blue-700 hover:underline inline-block"
-                >
-                  {step.linkText}
-                </Link>
+                    <div className="inline-flex items-center gap-2 text-blue-600 text-sm font-medium group-hover:text-blue-700">
+                      <span>Zobacz szczegóły</span>
+                      <svg
+                        className="w-4 h-4 group-hover:translate-x-1 transition-transform"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 5l7 7-7 7"
+                        />
+                      </svg>
+                    </div>
+                  </Link>
+                ) : (
+                  <>
+                    <h2 className="text-lg md:text-xl font-semibold text-gray-900 mb-1">
+                      {step.title}
+                    </h2>
+                    <p className="text-sm text-gray-600 mb-4">
+                      {step.description}
+                    </p>
+
+                    <div className="bg-gray-50 rounded-lg p-6 mb-4 flex items-center justify-center">
+                      <div className="relative w-32 h-32">
+                        <Image
+                          src={step.image}
+                          alt={step.title}
+                          fill
+                          className="object-contain"
+                        />
+                      </div>
+                    </div>
+
+                    <Link
+                      href={step.linkHref}
+                      className="text-blue-600 text-sm hover:text-blue-700 hover:underline inline-block"
+                    >
+                      {step.linkText}
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
           ))}
