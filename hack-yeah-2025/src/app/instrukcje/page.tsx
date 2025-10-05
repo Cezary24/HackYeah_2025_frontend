@@ -13,19 +13,22 @@ const instructions: Instruction[] = [
     id: "powodz",
     title: "Powódź",
     icon: "/assets/flood.png",
-    pdfUrl: "/pdfs/powodz.pdf",
+    pdfUrl:
+      "https://www.gov.pl/attachment/5af47cd1-c51b-405a-8d2e-f066ed8c7e9d",
   },
   {
     id: "pozar",
     title: "Pożar",
     icon: "/assets/fire.png",
-    pdfUrl: "/pdfs/pozar.pdf",
+    pdfUrl:
+      "https://www.google.com/url?sa=t&source=web&rct=j&opi=89978449&url=https://www.gov.pl/attachment/dce442bf-7980-4b1b-9a2a-76d3ee4aaaf8&ved=2ahUKEwjJ553v9YuQAxVBBNsEHQ-wENgQFnoECBsQAQ&usg=AOvVaw0dnfEBXrY5AnkSycM_7k1_",
   },
   {
     id: "nalot-dronow",
     title: "Nalot dronów",
     icon: "/assets/dron.png",
-    pdfUrl: "/pdfs/nalot-dronow.pdf",
+    pdfUrl:
+      "https://www.google.com/url?sa=t&source=web&rct=j&opi=89978449&url=https://www.gov.pl/attachment/64c7377b-8ebb-4c19-a756-07ad3630f92c&ved=2ahUKEwjtpu6f9ouQAxUUQPEDHcmbJMkQFnoECBgQAQ&usg=AOvVaw39Eic3RQdJbc2nI_HSWMYP",
   },
 ];
 

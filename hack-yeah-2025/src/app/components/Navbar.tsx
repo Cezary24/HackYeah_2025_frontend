@@ -73,7 +73,7 @@ export default function Navbar() {
       icon: HomeIcon,
     },
     {
-      name: "Alerty",
+      name: "Ogłoszenia",
       href: "/dron-alert",
       icon: AlertIcon,
     },

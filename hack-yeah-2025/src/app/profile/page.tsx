@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 
 export default function ProfilePage() {
   const [fontSize, setFontSize] = useState<"small" | "medium" | "large">(
@@ -16,7 +17,14 @@ export default function ProfilePage() {
       <div className="max-w-2xl mx-auto bg-white rounded-2xl shadow-sm p-6 sm:p-8">
         {/* Profil użytkownika */}
         <div className="flex items-start gap-4 mb-8">
-          <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gray-300 rounded-full flex-shrink-0"></div>
+          <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full flex-shrink-0 overflow-hidden relative">
+            <Image
+              src="/assets/user/user.png"
+              alt="Jan Kowalski"
+              fill
+              className="object-cover"
+            />
+          </div>
           <div className="flex-1">
             <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">
               Jan Kowalski
