@@ -12,38 +12,20 @@ const instructions: Instruction[] = [
   {
     id: "powodz",
     title: "Powódź",
-    icon: "/assets/alert.png",
+    icon: "/assets/flood.png",
     pdfUrl: "/pdfs/powodz.pdf",
+  },
+  {
+    id: "pozar",
+    title: "Pożar",
+    icon: "/assets/fire.png",
+    pdfUrl: "/pdfs/pozar.pdf",
   },
   {
     id: "nalot-dronow",
     title: "Nalot dronów",
     icon: "/assets/dron.png",
     pdfUrl: "/pdfs/nalot-dronow.pdf",
-  },
-  {
-    id: "pozar",
-    title: "Pożar",
-    icon: "/assets/alert.png",
-    pdfUrl: "/pdfs/pozar.pdf",
-  },
-  {
-    id: "atak-chemiczny",
-    title: "Atak chemiczny",
-    icon: "/assets/danger.png",
-    pdfUrl: "/pdfs/atak-chemiczny.pdf",
-  },
-  {
-    id: "trzesienie-ziemi",
-    title: "Trzęsienie ziemi",
-    icon: "/assets/alert.png",
-    pdfUrl: "/pdfs/trzesienie-ziemi.pdf",
-  },
-  {
-    id: "atak-terrorystyczny",
-    title: "Atak terrorystyczny",
-    icon: "/assets/danger.png",
-    pdfUrl: "/pdfs/atak-terrorystyczny.pdf",
   },
 ];
 

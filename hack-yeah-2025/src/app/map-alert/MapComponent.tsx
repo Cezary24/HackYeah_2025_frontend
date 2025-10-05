@@ -4,7 +4,7 @@ import "leaflet/dist/leaflet.css";
 import { MapContainer, TileLayer, useMap, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import { useEffect, useState, useCallback } from "react";
-import type { FeatureCollection, Feature, Point, Polygon } from "geojson";
+import type { FeatureCollection, Point, Polygon } from "geojson";
 
 // Napraw domyślne ikony Leaflet w Next.js
 if (typeof window !== "undefined") {
@@ -169,13 +169,14 @@ function BunkersLayer() {
           top: "10px",
           right: "10px",
           background: "white",
-          padding: "10px",
+          padding: "8px",
           borderRadius: "5px",
           zIndex: 1000,
           boxShadow: "0 2px 5px rgba(0,0,0,0.3)",
+          fontSize: "12px",
         }}
       >
-        Ładowanie bunkerów...
+        Ładowanie...
       </div>
     );
   }
@@ -232,17 +233,17 @@ function AlertPolygonsLayer() {
       <div
         style={{
           position: "absolute",
-          top: "60px",
+          top: "10px",
           left: "10px",
           background: "white",
-          padding: "8px 12px",
+          padding: "6px 10px",
           borderRadius: "4px",
           zIndex: 1000,
           boxShadow: "0 2px 5px rgba(0,0,0,0.3)",
-          fontSize: "14px",
+          fontSize: "11px",
         }}
       >
-        Ładowanie stref ostrzeżeń...
+        Ładowanie stref...
       </div>
     );
   }
@@ -251,12 +252,16 @@ function AlertPolygonsLayer() {
 }
 
 // Komponent do pokazywania lokalizacji użytkownika
-function LocationMarker() {
+function LocationMarker({
+  shouldCenterOnUser = false,
+}: {
+  shouldCenterOnUser?: boolean;
+}) {
   const map = useMap();
   const [position, setPosition] = useState<[number, number] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [retryCount, setRetryCount] = useState(0);
+  const [isFirstLoad, setIsFirstLoad] = useState(true);
 
   // Ikona dla lokalizacji użytkownika
   const userIcon = L.icon({
@@ -291,8 +296,11 @@ function LocationMarker() {
           );
           setPosition([latitude, longitude]);
           setLoading(false);
-          // Wyśrodkuj mapę na lokalizacji użytkownika
-          map.setView([latitude, longitude], 13);
+          // Centruj mapę przy pierwszym załadowaniu lub jeśli włączona jest flaga
+          if (shouldCenterOnUser || isFirstLoad) {
+            map.setView([latitude, longitude], 13, { animate: true });
+            setIsFirstLoad(false);
+          }
         },
         (err) => {
           console.error("Błąd pobierania lokalizacji:", {
@@ -345,11 +353,12 @@ function LocationMarker() {
     };
 
     tryGetPosition(true);
-  }, [map]);
+  }, [map, shouldCenterOnUser, isFirstLoad]);
 
   useEffect(() => {
     getLocation();
-  }, [getLocation]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Pobierz lokalizację tylko raz przy montowaniu
 
   if (loading) {
     return (
@@ -359,14 +368,15 @@ function LocationMarker() {
           bottom: "10px",
           left: "10px",
           background: "white",
-          padding: "10px",
+          padding: "8px",
           borderRadius: "5px",
           zIndex: 1000,
           boxShadow: "0 2px 5px rgba(0,0,0,0.3)",
           color: "#333",
+          fontSize: "12px",
         }}
       >
-        📍 Pobieranie lokalizacji...
+        📍 Lokalizacja...
       </div>
     );
   }
@@ -380,73 +390,152 @@ function LocationMarker() {
           bottom: "10px",
           left: "10px",
           background: "white",
-          padding: "10px",
+          padding: "8px",
           borderRadius: "5px",
           zIndex: 1000,
           boxShadow: "0 2px 5px rgba(0,0,0,0.3)",
-          maxWidth: "250px",
+          maxWidth: "200px",
         }}
       >
-        <div style={{ color: "red", marginBottom: "8px", fontSize: "14px" }}>
-          ⚠️ {error}
+        <div style={{ color: "red", marginBottom: "6px", fontSize: "11px" }}>
+          ⚠️ Brak lokalizacji
         </div>
         <button
           onClick={() => {
-            setRetryCount((prev) => prev + 1);
             getLocation();
           }}
           style={{
             background: "#3b82f6",
             color: "white",
-            padding: "6px 12px",
+            padding: "6px 10px",
             borderRadius: "4px",
             border: "none",
             cursor: "pointer",
-            fontSize: "14px",
+            fontSize: "11px",
             width: "100%",
           }}
         >
-          🔄 Spróbuj ponownie
+          🔄 Ponów
         </button>
       </div>
     );
   }
 
-  // Jeśli mamy pozycję, pokaż marker
+  // Jeśli mamy pozycję, pokaż marker i przycisk
   if (position) {
     return (
-      <Marker position={position} icon={userIcon}>
-        <Popup>
-          <strong>Twoja lokalizacja</strong>
-          <br />
-          Szerokość: {position[0].toFixed(6)}
-          <br />
-          Długość: {position[1].toFixed(6)}
-        </Popup>
-      </Marker>
+      <>
+        <Marker position={position} icon={userIcon}>
+          <Popup
+            autoPan={true}
+            closeButton={true}
+            className="mobile-friendly-popup"
+          >
+            <div
+              style={{
+                fontSize: "14px",
+                lineHeight: "1.5",
+                minWidth: "200px",
+                padding: "4px",
+              }}
+            >
+              <strong style={{ fontSize: "16px" }}>📍 Twoja lokalizacja</strong>
+              <br />
+              <span style={{ fontSize: "13px" }}>
+                Szerokość: {position[0].toFixed(6)}
+              </span>
+              <br />
+              <span style={{ fontSize: "13px" }}>
+                Długość: {position[1].toFixed(6)}
+              </span>
+            </div>
+          </Popup>
+        </Marker>
+
+        {/* Przycisk do powrotu do lokalizacji użytkownika */}
+        {!shouldCenterOnUser && (
+          <div
+            style={{
+              position: "absolute",
+              bottom: "10px",
+              left: "10px",
+              background: "white",
+              padding: "10px",
+              borderRadius: "8px",
+              zIndex: 1000,
+              boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
+            }}
+          >
+            <button
+              onClick={() => {
+                map.setView(position, 13, { animate: true });
+              }}
+              style={{
+                background: "#3b82f6",
+                color: "white",
+                padding: "10px 14px",
+                borderRadius: "6px",
+                border: "none",
+                cursor: "pointer",
+                fontSize: "14px",
+                fontWeight: "500",
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+                whiteSpace: "nowrap",
+                minHeight: "44px",
+                minWidth: "44px",
+                justifyContent: "center",
+              }}
+            >
+              📍 Lokalizacja
+            </button>
+          </div>
+        )}
+      </>
     );
   }
 
   return null;
 }
 
-export default function MapComponent() {
+function MapViewController({ center }: { center?: [number, number] }) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (center) {
+      map.setView(center, 9, { animate: true, duration: 1 });
+    }
+  }, [center, map]);
+
+  return null;
+}
+
+interface MapComponentProps {
+  center?: [number, number];
+}
+
+export default function MapComponent({ center }: MapComponentProps) {
   return (
     <MapContainer
-      center={[52.0, 19.0]} // Centrum Polski
-      zoom={7} // Domyślny zoom
-      minZoom={6} // Minimalny zoom (cała Polska)
-      maxZoom={18} // Maksymalny zoom (szczegóły ulic)
+      center={center || [52.0, 19.0]}
+      zoom={center ? 9 : 7}
+      minZoom={6}
+      maxZoom={18}
       scrollWheelZoom={true}
-      zoomControl={true} // Przyciski +/- do zoomowania
-      style={{ height: "600px", width: "100%" }}
+      zoomControl={true}
+      style={{
+        height: "100%",
+        width: "100%",
+      }}
     >
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
+      <MapViewController center={center} />
       <AlertPolygonsLayer />
-      <LocationMarker />
+      <LocationMarker shouldCenterOnUser={false} />
       <BunkersLayer />
     </MapContainer>
   );

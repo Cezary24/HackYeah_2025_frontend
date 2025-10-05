@@ -11,32 +11,17 @@ const scenarios: Scenario[] = [
   {
     id: "powodz",
     title: "Powódź",
-    icon: "/assets/alert.png",
+    icon: "/assets/flood.png",
   },
   {
     id: "pozar",
     title: "Pożar",
-    icon: "/assets/alert.png",
+    icon: "/assets/fire.png",
   },
   {
     id: "atak-drona",
     title: "Nalot dronów",
     icon: "/assets/dron.png",
-  },
-  {
-    id: "atak-chemiczny",
-    title: "Atak chemiczny",
-    icon: "/assets/danger.png",
-  },
-  {
-    id: "trzesienie-ziemi",
-    title: "Trzęsienie ziemi",
-    icon: "/assets/alert.png",
-  },
-  {
-    id: "atak-terrorystyczny",
-    title: "Atak terrorystyczny",
-    icon: "/assets/danger.png",
   },
 ];
 
