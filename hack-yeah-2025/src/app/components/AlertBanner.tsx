@@ -13,25 +13,19 @@ export default function AlertBanner({ level = "high" }: AlertBannerProps) {
 
   const configs = {
     none: {
-      bg: "bg-green-100",
-      border: "border-green-500",
-      text: "text-green-800",
+      bg: "#7a9c59",
       label: "Brak zagrożenia",
       icon: "✓",
     },
     moderate: {
-      bg: "bg-orange-100",
-      border: "border-orange-500",
-      text: "text-orange-800",
+      bg: "#c89659",
       label: "Możliwe zagrożenie",
-      icon: "⚠",
+      icon: "!",
     },
     high: {
-      bg: "bg-red-100",
-      border: "border-red-500",
-      text: "text-red-800",
+      bg: "#9b2c2c",
       label: "Wysokie zagrożenie",
-      icon: "❗",
+      icon: "!",
     },
   };
 
@@ -39,10 +33,38 @@ export default function AlertBanner({ level = "high" }: AlertBannerProps) {
 
   return (
     <div
-      className={`${config.bg} ${config.border} ${config.text} border-2 px-4 py-3 rounded-lg shadow-sm flex items-center justify-between`}
+      className="px-6 py-4 rounded-lg shadow-md flex items-center gap-4"
+      style={{ backgroundColor: config.bg }}
     >
-      <span className="font-semibold text-sm sm:text-base">{config.label}</span>
-      <span className="text-xl sm:text-2xl">{config.icon}</span>
+      <div className="flex items-center gap-3 flex-1">
+        {alertLevel === "none" ? (
+          <div className="w-8 h-8 rounded-full bg-white bg-opacity-30 flex items-center justify-center flex-shrink-0">
+            <span className="text-white text-xl font-bold">{config.icon}</span>
+          </div>
+        ) : (
+          <div className="relative flex-shrink-0">
+            <svg
+              width="36"
+              height="32"
+              viewBox="0 0 36 32"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M18 0L35.3205 30H0.679492L18 0Z"
+                fill="white"
+                fillOpacity="0.3"
+              />
+            </svg>
+            <span className="absolute inset-0 flex items-center justify-center text-white text-xl font-bold pb-1">
+              {config.icon}
+            </span>
+          </div>
+        )}
+        <span className="font-semibold text-base sm:text-lg text-white">
+          {config.label}
+        </span>
+      </div>
     </div>
   );
 }

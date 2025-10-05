@@ -254,8 +254,10 @@ function AlertPolygonsLayer() {
 // Komponent do pokazywania lokalizacji użytkownika
 function LocationMarker({
   shouldCenterOnUser = false,
+  disableAutoCenter = false,
 }: {
   shouldCenterOnUser?: boolean;
+  disableAutoCenter?: boolean;
 }) {
   const map = useMap();
   const [position, setPosition] = useState<[number, number] | null>(null);
@@ -296,8 +298,10 @@ function LocationMarker({
           );
           setPosition([latitude, longitude]);
           setLoading(false);
-          // Centruj mapę przy pierwszym załadowaniu lub jeśli włączona jest flaga
-          if (shouldCenterOnUser || isFirstLoad) {
+          // Centruj mapę tylko jeśli:
+          // - użytkownik kliknął przycisk (shouldCenterOnUser)
+          // - LUB jest to pierwsze załadowanie I użytkownik nie wybrał regionu (isFirstLoad && !disableAutoCenter)
+          if (shouldCenterOnUser || (isFirstLoad && !disableAutoCenter)) {
             map.setView([latitude, longitude], 13, { animate: true });
             setIsFirstLoad(false);
           }
@@ -353,7 +357,7 @@ function LocationMarker({
     };
 
     tryGetPosition(true);
-  }, [map, shouldCenterOnUser, isFirstLoad]);
+  }, [map, shouldCenterOnUser, isFirstLoad, disableAutoCenter]);
 
   useEffect(() => {
     getLocation();
@@ -365,15 +369,16 @@ function LocationMarker({
       <div
         style={{
           position: "absolute",
-          bottom: "10px",
+          bottom: "80px",
           left: "10px",
           background: "white",
-          padding: "8px",
-          borderRadius: "5px",
+          padding: "8px 12px",
+          borderRadius: "8px",
           zIndex: 1000,
-          boxShadow: "0 2px 5px rgba(0,0,0,0.3)",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
           color: "#333",
-          fontSize: "12px",
+          fontSize: "14px",
+          fontWeight: "500",
         }}
       >
         📍 Lokalizacja...
@@ -387,17 +392,24 @@ function LocationMarker({
       <div
         style={{
           position: "absolute",
-          bottom: "10px",
+          bottom: "80px",
           left: "10px",
           background: "white",
-          padding: "8px",
-          borderRadius: "5px",
+          padding: "10px",
+          borderRadius: "8px",
           zIndex: 1000,
-          boxShadow: "0 2px 5px rgba(0,0,0,0.3)",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
           maxWidth: "200px",
         }}
       >
-        <div style={{ color: "red", marginBottom: "6px", fontSize: "11px" }}>
+        <div
+          style={{
+            color: "#dc2626",
+            marginBottom: "8px",
+            fontSize: "12px",
+            fontWeight: "500",
+          }}
+        >
           ⚠️ Brak lokalizacji
         </div>
         <button
@@ -407,12 +419,14 @@ function LocationMarker({
           style={{
             background: "#3b82f6",
             color: "white",
-            padding: "6px 10px",
-            borderRadius: "4px",
+            padding: "8px 12px",
+            borderRadius: "6px",
             border: "none",
             cursor: "pointer",
-            fontSize: "11px",
+            fontSize: "12px",
+            fontWeight: "500",
             width: "100%",
+            minHeight: "36px",
           }}
         >
           🔄 Ponów
@@ -452,12 +466,11 @@ function LocationMarker({
           </Popup>
         </Marker>
 
-        {/* Przycisk do powrotu do lokalizacji użytkownika */}
         {!shouldCenterOnUser && (
           <div
             style={{
               position: "absolute",
-              bottom: "10px",
+              bottom: "80px",
               left: "10px",
               background: "white",
               padding: "10px",
@@ -516,6 +529,9 @@ interface MapComponentProps {
 }
 
 export default function MapComponent({ center }: MapComponentProps) {
+  // Jeśli użytkownik wybrał region (center jest ustawiony), nie centruj automatycznie na lokalizacji użytkownika
+  const userSelectedRegion = center !== undefined;
+
   return (
     <MapContainer
       center={center || [52.0, 19.0]}
@@ -535,7 +551,10 @@ export default function MapComponent({ center }: MapComponentProps) {
       />
       <MapViewController center={center} />
       <AlertPolygonsLayer />
-      <LocationMarker shouldCenterOnUser={false} />
+      <LocationMarker
+        shouldCenterOnUser={false}
+        disableAutoCenter={userSelectedRegion}
+      />
       <BunkersLayer />
     </MapContainer>
   );

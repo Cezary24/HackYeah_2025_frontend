@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import AlertBanner from "../components/AlertBanner";
 
 // Dane województw z koordynatami środka i poziomem alertu
 export interface VoivodeshipAlert {
@@ -139,104 +140,117 @@ export default function RegionSelector({
     );
   }
 
+  // Znajdź najwyższy alert w Polsce
+  const maxAlertLevel = voivodeships.reduce((max, v) => {
+    if (v.alertLevel === "red") return "red";
+    if (v.alertLevel === "yellow" && max !== "red") return "yellow";
+    return max;
+  }, "none" as "red" | "yellow" | "none");
+
+  const alertLevelMap = {
+    red: "high" as const,
+    yellow: "moderate" as const,
+    none: "none" as const,
+  };
+
   return (
-    <div className="w-full min-h-screen flex flex-col items-center justify-center bg-white py-4 px-2 sm:py-8 sm:px-4">
+    <div className="w-full h-screen flex flex-col bg-white overflow-hidden">
       {/* Nagłówek */}
-      <div className="text-center mb-4 sm:mb-8">
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">
+      <div className="text-center py-2 px-2 flex-shrink-0">
+        <h1 className="text-lg sm:text-2xl font-bold text-gray-800 mb-1">
           Wybierz lokalizację
         </h1>
-        <p className="text-sm sm:text-base text-gray-600">
+        <p className="text-xs sm:text-sm text-gray-600">
           Kliknij na województwo, aby zobaczyć szczegóły
         </p>
       </div>
 
       {/* Mapa województw */}
-      <div className="relative w-full max-w-4xl px-2 sm:px-8">
-        <svg
-          viewBox="0 0 500 300"
-          className="w-full h-auto"
-          style={{ maxHeight: "70vh" }}
-          preserveAspectRatio="xMidYMid meet"
-        >
-          {geometries.map((geometry) => {
-            const voivodeship = voivodeships.find(
-              (v) => v.name === geometry.name
-            );
-            if (!voivodeship) return null;
+      <div className="flex-1 flex items-center justify-center px-2 sm:px-8 min-h-0">
+        <div className="w-full max-w-4xl h-full flex items-center justify-center">
+          <svg
+            viewBox="0 0 500 300"
+            className="w-full h-full"
+            preserveAspectRatio="xMidYMid meet"
+          >
+            {geometries.map((geometry) => {
+              const voivodeship = voivodeships.find(
+                (v) => v.name === geometry.name
+              );
+              if (!voivodeship) return null;
 
-            return (
-              <g key={geometry.name}>
-                <path
-                  d={geometry.path}
-                  fill={getAlertColor(voivodeship.alertLevel)}
-                  stroke="white"
-                  strokeWidth="1"
-                  className="cursor-pointer transition-all duration-200 hover:opacity-80"
-                  onClick={() => onVoivodeshipSelect(voivodeship)}
-                  onMouseEnter={() => setHoveredRegion(geometry.name)}
-                  onMouseLeave={() => setHoveredRegion(null)}
-                />
+              return (
+                <g key={geometry.name}>
+                  <path
+                    d={geometry.path}
+                    fill={getAlertColor(voivodeship.alertLevel)}
+                    stroke="white"
+                    strokeWidth="1"
+                    className="cursor-pointer transition-all duration-200 hover:opacity-80"
+                    onClick={() => onVoivodeshipSelect(voivodeship)}
+                    onMouseEnter={() => setHoveredRegion(geometry.name)}
+                    onMouseLeave={() => setHoveredRegion(null)}
+                  />
 
-                {/* Ikony alertów */}
-                {voivodeship.alertLevel !== "none" && (
-                  <text
-                    x={geometry.centroid[0]}
-                    y={geometry.centroid[1]}
-                    fontSize="16"
-                    textAnchor="middle"
-                    dominantBaseline="middle"
-                    className="pointer-events-none"
-                  >
-                    {voivodeship.alertLevel === "red" ? "❗" : "⚠️"}
-                  </text>
-                )}
-              </g>
-            );
-          })}
-        </svg>
-      </div>
-
-      {/* Legenda */}
-      <div className="flex flex-col sm:flex-row gap-3 sm:gap-6 mt-4 sm:mt-6 justify-center px-4">
-        <div className="flex items-center gap-2">
-          <div
-            className="w-5 h-5 sm:w-6 sm:h-6 rounded flex-shrink-0"
-            style={{ backgroundColor: "#ef4444" }}
-          ></div>
-          <span className="text-xs sm:text-sm text-gray-700">
-            Alert czerwony
-          </span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div
-            className="w-5 h-5 sm:w-6 sm:h-6 rounded flex-shrink-0"
-            style={{ backgroundColor: "#f59e0b" }}
-          ></div>
-          <span className="text-xs sm:text-sm text-gray-700">Alert żółty</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div
-            className="w-5 h-5 sm:w-6 sm:h-6 rounded flex-shrink-0"
-            style={{ backgroundColor: "#9ca3af" }}
-          ></div>
-          <span className="text-xs sm:text-sm text-gray-700">
-            Brak zagrożeń
-          </span>
+                  {/* Ikony alertów */}
+                  {voivodeship.alertLevel !== "none" && (
+                    <text
+                      x={geometry.centroid[0]}
+                      y={geometry.centroid[1]}
+                      fontSize="16"
+                      textAnchor="middle"
+                      dominantBaseline="middle"
+                      className="pointer-events-none"
+                    >
+                      {voivodeship.alertLevel === "red" ? "❗" : "⚠️"}
+                    </text>
+                  )}
+                </g>
+              );
+            })}
+          </svg>
         </div>
       </div>
 
-      {/* Informacja o najechaniu */}
-      {hoveredRegion && (
-        <div className="mt-4 sm:mt-6 mx-4 p-3 sm:p-4 bg-blue-50 rounded-lg border border-blue-200">
-          <p className="text-xs sm:text-sm text-blue-800 font-medium">
-            {hoveredRegion.charAt(0).toUpperCase() + hoveredRegion.slice(1)} -{" "}
-            {getAlertText(
-              voivodeships.find((v) => v.name === hoveredRegion)!.alertLevel
-            )}
-          </p>
+      {/* Legenda i informacja o najechaniu */}
+      <div className="flex-shrink-0 pb-safe pb-3 px-3">
+        {/* Informacja o najechaniu */}
+        {hoveredRegion ? (
+          <div className="mb-2 p-2 bg-blue-50 rounded-lg border border-blue-200">
+            <p className="text-xs sm:text-sm text-blue-800 font-medium text-center">
+              {hoveredRegion.charAt(0).toUpperCase() + hoveredRegion.slice(1)} -{" "}
+              {getAlertText(
+                voivodeships.find((v) => v.name === hoveredRegion)!.alertLevel
+              )}
+            </p>
+          </div>
+        ) : null}
+
+        {/* Legenda */}
+        <div className="flex items-center justify-center gap-3 sm:gap-6 flex-wrap">
+          <div className="flex items-center gap-1.5">
+            <div
+              className="w-3 h-3 sm:w-4 sm:h-4 rounded flex-shrink-0"
+              style={{ backgroundColor: "#ef4444" }}
+            ></div>
+            <span className="text-xs text-gray-700">Alert czerwony</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <div
+              className="w-3 h-3 sm:w-4 sm:h-4 rounded flex-shrink-0"
+              style={{ backgroundColor: "#f59e0b" }}
+            ></div>
+            <span className="text-xs text-gray-700">Alert żółty</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <div
+              className="w-3 h-3 sm:w-4 sm:h-4 rounded flex-shrink-0"
+              style={{ backgroundColor: "#9ca3af" }}
+            ></div>
+            <span className="text-xs text-gray-700">Brak zagrożeń</span>
+          </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }

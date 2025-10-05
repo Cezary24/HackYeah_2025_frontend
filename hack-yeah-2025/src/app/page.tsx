@@ -30,7 +30,7 @@ export default function Page() {
   ];
 
   return (
-    <main className="h-full w-full flex flex-col p-4 sm:p-6 bg-gray-50">
+    <main className="min-h-screen w-full flex flex-col p-4 sm:p-6 bg-gray-50">
       <div className="mx-auto w-full max-w-4xl flex-1 flex flex-col">
         <h1 className="sr-only">Home</h1>
 
@@ -59,9 +59,9 @@ export default function Page() {
           ))}
         </div>
 
-        <section className="bg-white rounded-xl p-6 shadow-md">
+        <section className="bg-white rounded-xl p-6 shadow-md mb-4">
           <h2 className="text-xl font-semibold mb-4">Oficjalne komunikaty</h2>
-          <article className="min-h-[200px] rounded-lg bg-neutral-100 p-4 flex items-center justify-center text-gray-500">
+          <article className="min-h-[200px] rounded-lg bg-gray-50 p-4 flex items-center justify-center text-gray-500">
             <span>Brak nowych komunikatów</span>
           </article>
         </section>
