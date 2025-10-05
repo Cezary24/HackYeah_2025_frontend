@@ -25,7 +25,6 @@ export default function InterviewPage() {
     if (currentStep === 1) {
       setCurrentStep(2);
     } else {
-      // Zapisz dane i przekieruj
       localStorage.setItem("interviewCompleted", "true");
       router.push("/");
     }

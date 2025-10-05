@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import AlertBanner from "../components/AlertBanner";
 
 // Dane województw z koordynatami środka i poziomem alertu
 export interface VoivodeshipAlert {
@@ -139,19 +138,6 @@ export default function RegionSelector({
       </div>
     );
   }
-
-  // Znajdź najwyższy alert w Polsce
-  const maxAlertLevel = voivodeships.reduce((max, v) => {
-    if (v.alertLevel === "red") return "red";
-    if (v.alertLevel === "yellow" && max !== "red") return "yellow";
-    return max;
-  }, "none" as "red" | "yellow" | "none");
-
-  const alertLevelMap = {
-    red: "high" as const,
-    yellow: "moderate" as const,
-    none: "none" as const,
-  };
 
   return (
     <div className="w-full  flex flex-col bg-white">
